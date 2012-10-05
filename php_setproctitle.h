@@ -25,11 +25,11 @@ extern zend_module_entry setproctitle_module_entry;
 #define phpext_setproctitle_ptr &setproctitle_module_entry
 
 #ifdef PHP_WIN32
-#	define PHP_SETPROCTITLE_API __declspec(dllexport)
+#       define PHP_SETPROCTITLE_API __declspec(dllexport)
 #elif defined(__GNUC__) && __GNUC__ >= 4
-#	define PHP_SETPROCTITLE_API __attribute__ ((visibility("default")))
+#       define PHP_SETPROCTITLE_API __attribute__ ((visibility("default")))
 #else
-#	define PHP_SETPROCTITLE_API
+#       define PHP_SETPROCTITLE_API
 #endif
 
 #ifdef ZTS
@@ -50,7 +50,7 @@ PHP_FUNCTION(setproctitle);
 #define SETPROCTITLE_G(v) (setproctitle_globals.v)
 #endif
 
-#endif	/* PHP_SETPROCTITLE_H */
+#endif  /* PHP_SETPROCTITLE_H */
 
 
 /*
