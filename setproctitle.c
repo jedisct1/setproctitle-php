@@ -53,11 +53,9 @@ static void clearargs(void)
     unsigned int  env_nb = 0U;
 
     while (next != env0) {
-        puts(next);
         next += strlen(next) + 1U;
     }
     while (*next != 0) {
-        puts(next);
         next += strlen(next) + 1U;
     }
     argv_lth = next - argv0;
