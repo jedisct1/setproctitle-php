@@ -72,7 +72,7 @@ static void clearargs(void)
     while (environ[env_nb] != NULL) {
         env_nb++;
     }
-    if ((new_environ = malloc((1U + env_nb) * sizeof (char *))) == NULL) {
+    if ((new_environ = calloc(1U + env_nb, sizeof (char *))) == NULL) {
 	return;
     }
     new_environ[env_nb] = NULL;
