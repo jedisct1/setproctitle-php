@@ -4,6 +4,9 @@
 # include "config.h"
 #endif
 
+#ifdef __linux__
+# include <sys/prctl.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 
@@ -97,11 +100,14 @@ PHP_FUNCTION(setproctitle)
     }
 #ifdef HAVE_SETPROCTITLE
     setproctitle("-%s", title);
-#else
+#elif defined(__linux__)
     if (argv0 != NULL) {
         memset(argv0, 0, argv_lth);
         strncpy(argv0, title, argv_lth - 2);
     }
+# ifdef PR_SET_NAME
+   prctl(PR_SET_NAME, (unsigned long) title, NULL, NULL, NULL);
+# endif
 #endif
 }
 
