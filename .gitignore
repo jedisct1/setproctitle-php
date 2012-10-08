@@ -1,12 +1,29 @@
-# Compiled Object files
-*.slo
-*.lo
-*.o
-
-# Compiled Dynamic libraries
-*.so
-
-# Compiled Static libraries
-*.lai
-*.la
 *.a
+*.la
+*.lai
+*.lo
+*.log
+*.o
+*.slo
+*.so
+*.status
+.deps
+.libs
+Makefile
+Makefile.fragments
+Makefile.objects
+acinclude.m4
+aclocal.m4
+autom4te.cache
+build
+config.guess
+config.h
+config.nice
+config.sub
+configure
+configure.in
+install-sh
+libtool
+ltmain.sh
+missing
+mkinstalldirs
