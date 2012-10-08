@@ -20,10 +20,6 @@
 #include "ext/standard/info.h"
 #include "php_setproctitle.h"
 
-static char   *argv0 = NULL;
-static size_t  argv_lth;
-static int     le_setproctitle;
-
 const zend_function_entry setproctitle_functions[] = {
     PHP_FE(setproctitle, NULL)
 #ifdef PHP_FE_END   
@@ -39,7 +35,7 @@ zend_module_entry setproctitle_module_entry = {
 #endif
     "setproctitle",
     setproctitle_functions,
-    PHP_MINIT(setproctitle),
+    NULL,
     NULL,
     NULL,
     NULL,
@@ -54,17 +50,20 @@ zend_module_entry setproctitle_module_entry = {
 ZEND_GET_MODULE(setproctitle)
 #endif
 
+#if defined(__linux__) && !defined(HAVE_SETPROCTITLE)
+static char   *argv0 = NULL;
+static size_t  argv_lth;
+
 static void clearargs(void)
 {
-#if defined(__linux__) && !defined(HAVE_SETPROCTITLE)
     extern char **environ;
     char        **new_environ;
     char         *next = argv0;
     char         *env0;
     unsigned int  env_nb = 0U;
     
-    if (argv0 == NULL || environ == NULL || (env0 = environ[0]) == NULL) {
-	return;
+    if (next == NULL || environ == NULL || (env0 = environ[0]) == NULL) {
+        return;
     }
     while (next != env0) {
         next += strlen(next) + 1U;
@@ -77,29 +76,29 @@ static void clearargs(void)
         env_nb++;
     }
     if ((new_environ = calloc(1U + env_nb, sizeof (char *))) == NULL) {
-	return;
+        return;
     }
     new_environ[env_nb] = NULL;
     while (env_nb-- > 0U) {
         if ((new_environ[env_nb] = strdup(environ[env_nb])) == NULL) {
-	    return;
-	}
+            return;
+        }
     }
     environ = new_environ;
-#endif
 }
 
-PHP_MINIT_FUNCTION(setproctitle)
+static void relocate_environ_for_linux(void)
 {
-    sapi_module_struct *symbol = &sapi_module;
+    static _Bool done;
 
-    if (symbol != NULL) {
-        argv0 = symbol->executable_location;
+    if (done != 0) {
+        return;
     }
+    argv0 = sapi_module.executable_location;
     clearargs();
-
-    return SUCCESS;
+    done = 1;
 }
+#endif
 
 PHP_FUNCTION(setproctitle)
 {
@@ -110,21 +109,29 @@ PHP_FUNCTION(setproctitle)
                               &title, &title_len) == FAILURE) {
         RETURN_NULL();
     }
+
 #ifdef HAVE_SETPROCTITLE
+
     setproctitle("-%s", title);
+
+#elif defined(__hpux__)
+
+    union pstun pst;
+    
+    pst.pst_command = title;
+    pstat(PSTAT_SETCMD, pst, strlen(title), 0, 0);
+
 #elif defined(__linux__)
+
+    relocate_environ_for_linux();    
     if (argv0 != NULL && argv_lth > 2U) {
         memset(argv0, 0, argv_lth);
         strncpy(argv0, title, argv_lth - 2U);
     }
 # ifdef PR_SET_NAME
-   prctl(PR_SET_NAME, (unsigned long) title, NULL, NULL, NULL);
+    prctl(PR_SET_NAME, (unsigned long) title, NULL, NULL, NULL);
 # endif
-#elif defined(__hpux__)
-   union pstun pst;
 
-   pst.pst_command = title;
-   pstat(PSTAT_SETCMD, pst, strlen(title), 0, 0);
 #endif
 }
 
