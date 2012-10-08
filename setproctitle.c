@@ -22,7 +22,11 @@ static size_t argv_lth;
 
 const zend_function_entry setproctitle_functions[] = {
     PHP_FE(setproctitle, NULL)
+#ifdef PHP_FE_END   
+    PHP_FE_END
+#else
     { NULL, NULL, NULL }
+#endif
 };
 
 zend_module_entry setproctitle_module_entry = {
