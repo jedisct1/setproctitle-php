@@ -7,6 +7,10 @@
 #ifdef __linux__
 # include <sys/prctl.h>
 #endif
+#ifdef __hpux__
+# include <sys/param.h>
+# include <sys/pstat.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 
@@ -116,6 +120,11 @@ PHP_FUNCTION(setproctitle)
 # ifdef PR_SET_NAME
    prctl(PR_SET_NAME, (unsigned long) title, NULL, NULL, NULL);
 # endif
+#elif defined(__hpux__)
+   union pstun pst;
+
+   pst.pst_command = title;
+   pstat(PSTAT_SETCMD, pst, strlen(title), 0, 0);
 #endif
 }
 
