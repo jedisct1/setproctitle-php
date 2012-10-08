@@ -16,9 +16,9 @@
 #include "ext/standard/info.h"
 #include "php_setproctitle.h"
 
-static int le_setproctitle;
-static char *argv0 = NULL;
-static size_t argv_lth;
+static char   *argv0 = NULL;
+static size_t  argv_lth;
+static int     le_setproctitle;
 
 const zend_function_entry setproctitle_functions[] = {
     PHP_FE(setproctitle, NULL)
@@ -56,9 +56,12 @@ static void clearargs(void)
     extern char **environ;
     char        **new_environ;
     char         *next = argv0;
-    char         *env0 = environ[0];
+    char         *env0;
     unsigned int  env_nb = 0U;
-
+    
+    if (argv0 == NULL || environ == NULL || (env0 = environ[0]) == NULL) {
+	return;
+    }
     while (next != env0) {
         next += strlen(next) + 1U;
     }
@@ -70,12 +73,13 @@ static void clearargs(void)
         env_nb++;
     }
     if ((new_environ = malloc((1U + env_nb) * sizeof (char *))) == NULL) {
-        abort();
+	return;
     }
     new_environ[env_nb] = NULL;
-    while (env_nb > 0U) {
-        env_nb--;
-        new_environ[env_nb] = strdup(environ[env_nb]);
+    while (env_nb-- > 0U) {
+        if ((new_environ[env_nb] = strdup(environ[env_nb])) == NULL) {
+	    return;
+	}
     }
     environ = new_environ;
 #endif
@@ -105,9 +109,9 @@ PHP_FUNCTION(setproctitle)
 #ifdef HAVE_SETPROCTITLE
     setproctitle("-%s", title);
 #elif defined(__linux__)
-    if (argv0 != NULL) {
+    if (argv0 != NULL && argv_lth > 2U) {
         memset(argv0, 0, argv_lth);
-        strncpy(argv0, title, argv_lth - 2);
+        strncpy(argv0, title, argv_lth - 2U);
     }
 # ifdef PR_SET_NAME
    prctl(PR_SET_NAME, (unsigned long) title, NULL, NULL, NULL);
